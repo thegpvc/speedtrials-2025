@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water System Status - {{ system.WaterSystemName if system else 'Error' }} - WaterCheck Georgia</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f7fc; color: #333; }
+        .container { background-color: #fff; margin: 30px auto; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 700px; }
+        h1 { color: #0056b3; margin-bottom: 10px; }
+        h2 { color: #007bff; margin-top: 30px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        p { line-height: 1.6; margin-bottom: 10px; }
+        .status-box {
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            margin: 25px 0;
+            font-size: 1.3em;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        .status-green { background-color: #28a745; border-color: #1e7e34;}
+        .status-yellow { background-color: #ffc107; color: #333; border-color: #d39e00;}
+        .status-red { background-color: #dc3545; border-color: #b02a37;}
+        .status-grey { background-color: #6c757d; border-color: #545b62;} /* For unknown status */
+
+        .detail-item { margin-bottom: 10px; padding: 8px; border-left: 3px solid #007bff; background-color: #f8f9fa; }
+        .detail-item strong { color: #333; min-width: 180px; display: inline-block; }
+        .violation-info { margin-top:15px; padding:15px; background-color:#fff9e6; border:1px solid #ffecb3; border-radius:4px;}
+        .violation-info h3 { margin-top:0; color: #c08c00; }
+
+        a.back-link {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 12px 20px;
+            background-color: #0056b3;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+            font-size: 1em;
+        }
+        a.back-link:hover { background-color: #004494; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% if system and status %}
+            <h1>{{ system.WaterSystemName }}</h1>
+            <p><em>Serving {{ system.County }} County - Population: {{ system.PopulationServed }}</em></p>
+
+            <div class="status-box status-{{ status.color }}">
+                {{ status.summary_text }}
+            </div>
+
+            <h2>System Details</h2>
+            <div class="detail-item"><strong>Water System ID:</strong> {{ system.WaterSystemID }}</div>
+            <div class="detail-item"><strong>Primary Water Source:</strong> {{ system.PrimarySource }}</div>
+
+            <h2>Recent Violations Summary (Last 2 Years)</h2>
+            <div class="detail-item"><strong>Number of Violations Reported:</strong> {{ system.ViolationsLast2Years }}</div>
+
+            {% if system.ViolationsLast2Years != "0" and system.LastViolationType != "N/A" %}
+                <div class="violation-info">
+                    <h3>Understanding the Latest Violation</h3>
+                    <div class="detail-item"><strong>Most Recent Violation Date:</strong> {{ system.LastViolationDate }}</div>
+                    <div class="detail-item"><strong>Most Recent Violation Type:</strong> {{ system.LastViolationType }}</div>
+                    <p><strong>Plain English Explanation:</strong> {{ status.violation_explanation }}</p>
+                </div>
+            {% elif status.violation_explanation %}
+                 <p>{{ status.violation_explanation }}</p> <!-- Catches "No violations reported" -->
+            {% endif %}
+
+            <!--
+                A more detailed "Violation Timeline" would require the CSV to have multiple violation records per system,
+                or a related table if we were using a database. For this hackathon, the summary above is a good MVP.
+                If data was structured like:
+                system_violations = [
+                    {'date': '2023-01-01', 'type': 'MCL Exceedance', 'details': '...'},
+                    {'date': '2023-06-15', 'type': 'Monitoring Failure', 'details': '...'}
+                ]
+                Then we could loop through system_violations here.
+            -->
+
+            <h2>Stay Updated</h2>
+            <form action="#" method="POST" class="signup-form">
+                <p>Sign up for mock email alerts for this system (demonstration only):</p>
+                <input type="email" name="email_signup" placeholder="Enter your email" required disabled style="width: calc(70% - 12px); padding: 10px; margin-right: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                <button type="submit" disabled style="padding: 10px 15px; background-color: #5cb85c; color:white; border:none; border-radius:4px; cursor: not-allowed;">Sign Up (Mock)</button>
+            </form>
+
+        {% else %}
+            <h1>System Not Found or Data Error</h1>
+            <p>The requested water system details could not be found or there was an error processing its data. Please try again.</p>
+        {% endif %}
+
+        <a href="{{ url_for('index') }}" class="back-link">&laquo; Check Another System</a>
+    </div>
+</body>
+</html>
